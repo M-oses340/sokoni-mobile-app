@@ -1,9 +1,17 @@
 import express from "express";
 import path from "path";
+import { serve } from "inngest/express";
 import { ENV } from "./config/env.js";
+import { functions, inngest } from "./config/inngest.js";
+
+
 
 const app = express();
 const __dirname = path.resolve();
+
+app.use(express.json());
+app.use("/api/inngest", serve({ client: inngest, functions }));
+
 
 // Health check
 app.get("/api/health", (req, res) => {

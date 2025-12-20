@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev":"node --watch src/server.js",
-    "start":"node  src/server.js"
+    "dev": "node --watch src/server.js",
+    "start": "node  src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type":"module",
+  "type": "module",
   "dependencies": {
     "dotenv": "^17.2.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "ingest": "^1.0.0",
+    "inngest": "^3.48.1",
+    "mogoose": "^0.0.1-security",
+    "mongoose": "^9.0.2"
   }
 }
