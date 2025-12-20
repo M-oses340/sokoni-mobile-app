@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { ENV } from "./env.js";
 
+<<<<<<< HEAD
 let cached = global.mongoose;
 
 if (!cached) {
@@ -27,3 +28,14 @@ export const connectDB = async () => {
     throw error; // ❗ do NOT exit the process
   }
 };
+=======
+export const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(ENV.DB_URL);
+    console.log(`✅ Connected to MONGODB: ${conn.connection.host}`);
+  } catch (error) {
+    console.error("💥 MONGODB connection error");
+    process.exit(1); // exit code 1 means failure, 0 means success
+  }
+};
+>>>>>>> auth_setup
