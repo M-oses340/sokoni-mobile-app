@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { connectDB } from "./config/db.js";
 import { clerkMiddleware } from "@clerk/express";
-import { serve } from "inngest/server"; // use /server for Vercel
+import { serve } from "inngest/express"; // use /server for Vercel
 import { ENV } from "./config/env.js";
 import { functions, inngest } from "./config/inngest.js";
 
