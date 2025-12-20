@@ -1,19 +1,16 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "admin/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+  "functions": {
+    "backend/src/server.js": {
+      "runtime": "vercel-node@latest"
     },
-    {
-      "src": "api/inngest.js",
-      "use": "@vercel/node"
+    "api/inngest.js": {
+      "runtime": "vercel-node@latest"
     }
-  ],
-  "routes": [
-    { "src": "/api/inngest", "dest": "/api/inngest.js" },
-    { "src": "/api/(.*)", "dest": "/backend/src/server.js" },
-    { "src": "/(.*)", "dest": "/admin/dist/index.html" }
+  },
+  "rewrites": [
+    { "source": "/api/inngest", "destination": "/api/inngest.js" },
+    { "source": "/api/(.*)", "destination": "/backend/src/server.js" },
+    { "source": "/(.*)", "destination": "/admin/dist/index.html" }
   ]
 }
