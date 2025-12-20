@@ -5,7 +5,7 @@
   "main": "index.js",
   "engines": {
     "node": ">=20.0.0"
-  },  
+  },
   "scripts": {
     "build": "npm install --prefix backend && npm install --prefix admin && npm run build --prefix admin",
     "start": "npm run start --prefix backend"
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/M-oses340/sokoni-mobile-app/issues"
   },
-  "homepage": "https://github.com/M-oses340/sokoni-mobile-app#readme"
+  "homepage": "https://github.com/M-oses340/sokoni-mobile-app#readme",
+  "dependencies": {
+    "inngest": "^3.48.1"
+  }
 }
