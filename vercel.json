@@ -1,13 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "backend/src/server.js": {
-      "runtime": "vercel-node@latest"
-    },
-    "api/inngest.js": {
-      "runtime": "vercel-node@latest"
-    }
-  },
   "rewrites": [
     { "source": "/api/inngest", "destination": "/api/inngest.js" },
     { "source": "/api/(.*)", "destination": "/backend/src/server.js" },
