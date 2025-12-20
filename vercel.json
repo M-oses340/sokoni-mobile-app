@@ -7,22 +7,13 @@
       "config": { "distDir": "dist" }
     },
     {
-<<<<<<< HEAD
       "src": "api/inngest.js",
-=======
-      "src": "backend/src/server.js",
->>>>>>> origin/main
       "use": "@vercel/node"
     }
   ],
   "routes": [
-<<<<<<< HEAD
     { "src": "/api/inngest", "dest": "/api/inngest.js" },
     { "src": "/api/(.*)", "dest": "/backend/src/server.js" },
     { "src": "/(.*)", "dest": "/admin/dist/index.html" }
-=======
-    { "src": "/api/(.*)", "dest": "/backend/src/server.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
->>>>>>> origin/main
   ]
 }
