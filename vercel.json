@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "admin/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "api/inngest.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/inngest", "dest": "/api/inngest.js" },
+    { "src": "/api/(.*)", "dest": "/backend/src/server.js" },
+    { "src": "/(.*)", "dest": "/admin/dist/index.html" }
+  ]
+}
