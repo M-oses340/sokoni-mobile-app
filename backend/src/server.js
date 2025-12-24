@@ -19,6 +19,7 @@ app.use(clerkMiddleware()); // adds auth object under req.auth
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/order",orderRoutes);
 
 // Health check
 app.get("/api/health", async (req, res) => {
