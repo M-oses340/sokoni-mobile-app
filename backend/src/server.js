@@ -24,7 +24,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/order",orderRoutes);
 app.use("/api/reviews",reviewRoutes);
-app.use("/api/order",productRoutes);
+app.use("/api/products",productRoutes);
 
 // Health check
 app.get("/api/health", async (req, res) => {
