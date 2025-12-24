@@ -5,6 +5,8 @@ import { clerkMiddleware } from "@clerk/express";
 import { serve } from "inngest/express"; // use /server for Vercel
 import { ENV } from "./config/env.js";
 import { functions, inngest } from "./config/inngest.js";
+import adminRoutes from "./routes/admin.route.js";
+import userRoutes from "./routes/user.route.js";
 
 const app = express();
 
@@ -15,6 +17,9 @@ app.use(clerkMiddleware()); // adds auth object under req.auth
 
 // Inngest serverless endpoint
 app.use("/api/inngest", serve({ client: inngest, functions }));
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/order",orderRoutes);
 
 // Health check
 app.get("/api/health", async (req, res) => {
