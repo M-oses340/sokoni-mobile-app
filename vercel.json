@@ -4,6 +4,6 @@
   "rewrites": [
     { "source": "/api/inngest", "destination": "/api/inngest.mjs" },
     { "source": "/api/(.*)", "destination": "/backend/src/server.mjs" },
-    { "source": "/(.*)", "destination": "/admin/dist/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
