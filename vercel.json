@@ -2,7 +2,13 @@
   "version": 2,
   "outputDirectory": "admin/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/backend/src/server.mjs" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { 
+      "source": "/api/(.*)", 
+      "destination": "/backend/src/server.mjs" 
+    },
+    { 
+      "source": "/(.*)", 
+      "destination": "/index.html" 
+    }
   ]
 }
