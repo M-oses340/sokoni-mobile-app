@@ -1,26 +1,18 @@
 {
   "name": "sokoni",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "engines": {
     "node": ">=20.0.0"
   },
+  "workspaces": [
+    "backend",
+    "admin"
+  ],
   "scripts": {
-    "build": "npm install --prefix backend && npm install --prefix admin && npm run build --prefix admin",
-    "start": "npm run start --prefix backend"
+    "build": "npm run build --workspace=admin",
+    "start": "npm run start --workspace=backend"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/M-oses340/sokoni-mobile-app.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/M-oses340/sokoni-mobile-app/issues"
-  },
-  "homepage": "https://github.com/M-oses340/sokoni-mobile-app#readme",
   "dependencies": {
     "inngest": "^3.48.1"
   }
