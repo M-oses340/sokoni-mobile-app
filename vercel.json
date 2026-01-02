@@ -2,8 +2,8 @@
   "version": 2,
   "outputDirectory": "admin/dist",
   "rewrites": [
-    { "source": "/api/inngest", "destination": "/api/inngest.mjs" },
-    { "source": "/api/(.*)", "destination": "/backend/src/server.mjs" },
+    { "source": "/api/inngest", "destination": "/api/inngest.js" },
+    { "source": "/api/(.*)", "destination": "/backend/src/server.js" },
     { "source": "/(.*)", "destination": "/admin/dist/index.html" }
   ]
 }
