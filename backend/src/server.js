@@ -15,13 +15,12 @@ import cors from "cors";
 
 
 const app = express();
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
 app.use(express.json());
 
 // Clerk auth middleware
 app.use(clerkMiddleware()); // adds auth object under req.auth
-
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
 // Inngest serverless endpoint
 
@@ -53,26 +52,5 @@ if (ENV.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname, "../admin/dist", "index.html"));
   });
 }
-
-// At the very bottom of your server.js
-
-const PORT = ENV.PORT || 5000;
-
-// This function starts the server only if we are running locally
-const startLocalServer = async () => {
-  if (ENV.NODE_ENV !== "production") {
-    try {
-      await connectDB();
-      app.listen(PORT, () => {
-        console.log(`🚀 Server active at http://localhost:${PORT}`);
-        console.log(`🔌 Health check: http://localhost:${PORT}/api/health`);
-      });
-    } catch (error) {
-      console.error("❌ Database connection failed during startup:", error);
-    }
-  }
-};
-
-startLocalServer();
 
 export default app;
