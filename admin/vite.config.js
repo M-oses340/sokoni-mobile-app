@@ -4,10 +4,20 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(),],
-  build: {
-    outDir: 'dist',       // Vercel serves this folder
-    emptyOutDir: true     // clears old builds before building
+  plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      // Any request starting with /api will be redirected to the backend
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
-  base: '/'                // ensures proper routing for SPA
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  },
+  base: '/'
 })
