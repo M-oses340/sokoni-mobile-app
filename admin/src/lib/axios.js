@@ -1,8 +1,13 @@
 import axios from "axios";
 
+// Determine the correct backend URL
+const baseURL = import.meta.env.MODE === 'production' 
+  ? 'https://sokoni-mobile-app.vercel.app/api' // Replace with your actual backend URL
+  : '/api'; // Keep using the proxy for local development
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true, // by adding this field browser will send the cookies to server automatically, on every single req
+  baseURL,
+  withCredentials: true,
 });
 
 export default axiosInstance;

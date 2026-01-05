@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "outputDirectory": "admin/dist",
+  "functions": {
+    "backend/src/server.js": {
+      "runtime": "vercel-node@latest"
+    }
+  },
   "rewrites": [
-    { "source": "/api/inngest", "destination": "/api/inngest.js" },
-    { "source": "/api/(.*)", "destination": "/backend/src/server.js" },
-    { "source": "/(.*)", "destination": "/admin/dist/index.html" }
+    { "source": "/api/(.*)", "destination": "backend/src/server.js" },
+    { "source": "/(.*)", "destination": "admin/dist/index.html" }
   ]
 }
