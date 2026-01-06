@@ -1,24 +1,20 @@
 import mongoose from "mongoose";
 import { ENV } from "./env.js";
 
-// This variable persists across function executions in Vercel
 let isConnected = false;
 
 export const connectDB = async () => {
-  mongoose.set("strictQuery", true);
-
-  if (isConnected) {
-    return; // Already connected, skip
-  }
+  if (isConnected) return; // Reuse existing connection
 
   try {
-    const db = await mongoose.connect(ENV.DB_URL);
+    const db = await mongoose.connect(ENV.DB_URL, {
+      serverSelectionTimeoutMS: 5000, // Fail fast if DB is down
+    });
     isConnected = db.connections[0].readyState;
-    console.log(`✅ Connected to MONGODB: ${db.connection.host}`);
+    console.log("✅ MongoDB Connected");
   } catch (error) {
-    console.error("💥 MONGODB connection error:", error.message);
-    // DO NOT process.exit(1) here. 
-    // Throwing the error allows your middleware to catch it and return a 500
+    console.error("💥 MongoDB connection error:", error.message);
+    // Throw error so the middleware can catch it and return a 500
     throw error; 
   }
 };
