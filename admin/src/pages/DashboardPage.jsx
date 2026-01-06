@@ -53,6 +53,13 @@ function DashboardPage() {
           </div>
         ))}
       </div>
+      <button
+      onClick={() => {
+        throw new Error('This is your first error!');
+      }}
+    >
+      Break the world
+    </button>
 
       {/* RECENT ORDERS */}
       <div className="card bg-base-100 shadow-xl">
