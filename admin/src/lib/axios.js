@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// Determine the correct backend URL
-const baseURL = import.meta.env.MODE === 'production' 
-  ? 'https://sokoni-mobile-app.vercel.app/api' // Replace with your actual backend URL
-  : '/api'; // Keep using the proxy for local development
+// If we are in production, requests to '/api' are automatically 
+// routed by Vercel to your backend based on vercel.json.
+// If in dev, Vite proxies '/api' to localhost:5000.
+const baseURL = '/api'; 
 
 const axiosInstance = axios.create({
   baseURL,
