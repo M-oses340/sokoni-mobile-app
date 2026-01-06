@@ -1,7 +1,7 @@
 import { requireAuth } from "@clerk/express";
 import { User } from "../models/user.model.js";
 import { connectDB } from "../config/db.js";
-import { ENV } from "../config/env.js"; // Needed for admin email check
+import { ENV } from "../config/env.js";
 
 export const protectRoute = [
   requireAuth(),
@@ -9,8 +9,12 @@ export const protectRoute = [
     try {
       await connectDB(); 
 
-      const clerkId = req.auth.userId; 
-      if (!clerkId) return res.status(401).json({ message: "Unauthorized" });
+      // ✅ FIX: Call req.auth() as a function
+      const { userId: clerkId } = req.auth(); 
+      
+      if (!clerkId) {
+        return res.status(401).json({ message: "Unauthorized - no session found" });
+      }
 
       const user = await User.findOne({ clerkId });
       if (!user) return res.status(404).json({ message: "User not found" });
@@ -24,7 +28,6 @@ export const protectRoute = [
   },
 ];
 
-// ADD THIS EXPORT TO FIX THE SYNTAX ERROR
 export const adminOnly = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized - user not found" });
