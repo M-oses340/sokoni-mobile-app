@@ -1,6 +1,5 @@
 import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
-import React from 'react'
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -19,15 +18,16 @@ interface ProductsGridProps {
   isError: boolean;
   products: Product[];
 }
-const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps)=> {
+
+const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
-  useWishlist();
+    useWishlist();
 
   const { isAddingToCart, addToCart } = useCart();
 
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(
-     { productId, quantity: 1 },
+      { productId, quantity: 1 },
       {
         onSuccess: () => {
           Alert.alert("Success", `${productName} added to cart!`);
@@ -38,6 +38,7 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps)=> {
       }
     );
   };
+
   const renderProduct = ({ item: product }: { item: Product }) => (
     <TouchableOpacity
       className="bg-surface rounded-3xl overflow-hidden mb-3"
@@ -122,7 +123,8 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps)=> {
       </View>
     );
   }
-   return (
+
+  return (
     <FlatList
       data={products}
       renderItem={renderProduct}
@@ -134,9 +136,10 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps)=> {
       ListEmptyComponent={NoProductsFound}
     />
   );
-}
+};
 
 export default ProductsGrid;
+
 function NoProductsFound() {
   return (
     <View className="py-20 items-center justify-center">
