@@ -1,0 +1,42 @@
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @clerk/clerk-expo@2.19.14
+npm error Found: react@19.1.0
+npm error node_modules/react
+npm error   peer react@">=16.8.0" from @emotion/react@11.11.1
+npm error   node_modules/@emotion/react
+npm error     @emotion/react@"11.11.1" from @clerk/clerk-js@5.117.0
+npm error     node_modules/@clerk/clerk-js
+npm error       @clerk/clerk-js@"^5.117.0" from @clerk/clerk-expo@2.19.14
+npm error       node_modules/@clerk/clerk-expo
+npm error         @clerk/clerk-expo@"^2.19.14" from the root project
+npm error   peer react@">=16.8.0" from @emotion/use-insertion-effect-with-fallbacks@1.2.0
+npm error   node_modules/@emotion/use-insertion-effect-with-fallbacks
+npm error     @emotion/use-insertion-effect-with-fallbacks@"^1.0.1" from @emotion/react@11.11.1
+npm error     node_modules/@emotion/react
+npm error       @emotion/react@"11.11.1" from @clerk/clerk-js@5.117.0
+npm error       node_modules/@clerk/clerk-js
+npm error         @clerk/clerk-js@"^5.117.0" from @clerk/clerk-expo@2.19.14
+npm error         node_modules/@clerk/clerk-expo
+npm error   76 more (@expo/devtools, @expo/metro-runtime, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0" from @clerk/clerk-expo@2.19.14
+npm error node_modules/@clerk/clerk-expo
+npm error   @clerk/clerk-expo@"^2.19.14" from the root project
+npm error
+npm error Conflicting peer dependency: react@19.2.3
+npm error node_modules/react
+npm error   peer react@"^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0" from @clerk/clerk-expo@2.19.14
+npm error   node_modules/@clerk/clerk-expo
+npm error     @clerk/clerk-expo@"^2.19.14" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/charles/.npm/_logs/2026-01-08T12_47_08_765Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/charles/.npm/_logs/2026-01-08T12_47_08_765Z-debug-0.log
