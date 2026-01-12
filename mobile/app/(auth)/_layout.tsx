@@ -1,13 +1,11 @@
-// app/(auth)/_layout.tsx
-import { Stack,Redirect} from 'expo-router';
-import { useAuth} from '@clerk/clerk-expo';
+import { Stack } from "expo-router";
 
-export default function AuthLayout() {
-  const {isSignedIn} = useAuth();
-  
-  if (isSignedIn) {
-    return <Redirect href={"/"} />;
-  }
-
-  return <Stack screenOptions={{ headerShown: false }} />
+export default function AuthRoutesLayout() {
+  // We removed the redirect logic from here 
+  // because it's already handled in the Root Layout.
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+    </Stack>
+  );
 }
