@@ -67,7 +67,12 @@ function AddressesScreen() {
   const handleDeleteAddress = (addressId: string, label: string) => {
     Alert.alert("Delete Address", `Are you sure you want to delete ${label}?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteAddress(addressId) },
+      { text: "Delete", style: "destructive", onPress: () => {
+      setMutatingAddressId(addressId);
+      deleteAddress(addressId, {
+      onSettled: () => setMutatingAddressId(null),
+      });
+     }},
     ]);
   };
 
@@ -86,6 +91,7 @@ function AddressesScreen() {
     }
 
     if (editingAddressId) {
+      setMutatingAddressId(editingAddressId);
       // update an existing address
       updateAddress(
         {
@@ -113,6 +119,7 @@ function AddressesScreen() {
         onError: (error: any) => {
           Alert.alert("Error", error?.response?.data?.error || "Failed to add address");
         },
+        onSettled: () => setMutatingAddressId(null),
       });
     }
   };
