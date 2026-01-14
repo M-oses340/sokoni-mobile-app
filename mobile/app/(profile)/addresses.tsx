@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 function AddressesScreen() {
+  const [mutatingAddressId, setMutatingAddressId] = useState<string | null>(null);
   const {
     addAddress,
     addresses,
@@ -64,7 +65,7 @@ function AddressesScreen() {
   };
 
   const handleDeleteAddress = (addressId: string, label: string) => {
-    Alert.alert("Delete Address", `Are you sure you want to delete ${label}`, [
+    Alert.alert("Delete Address", `Are you sure you want to delete ${label}?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => deleteAddress(addressId) },
     ]);
@@ -156,8 +157,8 @@ function AddressesScreen() {
                 address={address}
                 onEdit={handleEditAddress}
                 onDelete={handleDeleteAddress}
-                isUpdatingAddress={isUpdatingAddress}
-                isDeletingAddress={isDeletingAddress}
+                isUpdatingAddress={isUpdatingAddress && mutatingAddressId === address._id}
+                isDeletingAddress={isDeletingAddress && mutatingAddressId === address._id}
               />
             ))}
 
