@@ -20,7 +20,7 @@ const { width } = Dimensions.get("window");
 
 const ProductDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: product, isError, isLoading } = useProduct(id);
+  const { data: product, isError, isLoading } = useProduct(id ?? "");
   const { addToCart, isAddingToCart } = useCart();
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
