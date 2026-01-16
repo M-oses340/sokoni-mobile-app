@@ -144,6 +144,7 @@ export async function handleWebhook(req, res) {
       console.log("Order created successfully:", order._id);
     } catch (error) {
       console.error("Error creating order from webhook:", error);
+      return res.status(500).json({ error: "Failed to process order" });
     }
   }
 

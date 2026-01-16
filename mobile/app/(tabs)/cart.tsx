@@ -27,7 +27,9 @@ const CartScreen = () => {
     removeFromCart,
     updateQuantity,
   } = useCart();
-  const { addresses } = useAddresses();
+
+  const { addresses, isLoading: addressesLoading } = useAddresses();
+ 
 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
@@ -59,6 +61,10 @@ const CartScreen = () => {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
+    if (addressesLoading) {
+      Alert.alert("Loading addresses", "Please wait while we load your saved addresses.");
+      return;
+    }
 
     // check if user has addresses
     if (!addresses || addresses.length === 0) {
