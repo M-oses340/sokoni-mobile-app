@@ -12,28 +12,26 @@ export async function createPaymentIntent(req, res) {
     const { cartItems, shippingAddress } = req.body;
     const user = req.user;
 
-    // Validate cart items
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
     }
 
-    // Calculate total from server-side (don't trust client - ever.)
     let subtotal = 0;
     const validatedItems = [];
 
+    // 1. Server-side validation
     for (const item of cartItems) {
       const product = await Product.findById(item.product._id);
       if (!product) {
-        return res.status(404).json({ error: `Product ${item.product.name} not found` });
+        return res.status(404).json({ error: `Product not found` });
       }
-
       if (product.stock < item.quantity) {
         return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
       }
 
       subtotal += product.price * item.quantity;
       validatedItems.push({
-        product: product._id.toString(),
+        product: product._id,
         name: product.name,
         price: product.price,
         quantity: item.quantity,
@@ -41,53 +39,50 @@ export async function createPaymentIntent(req, res) {
       });
     }
 
-    const shipping = 10.0; // $10
-    const tax = subtotal * 0.08; // 8%
+    const shipping = 10.0;
+    const tax = subtotal * 0.08;
     const total = subtotal + shipping + tax;
 
-    if (total <= 0) {
-      return res.status(400).json({ error: "Invalid order total" });
-    }
-
-    // find or create the stripe customer
-    let customer;
-    if (user.stripeCustomerId) {
-      // find the customer
-      customer = await stripe.customers.retrieve(user.stripeCustomerId);
-    } else {
-      // create the customer
-      customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: {
-          clerkId: user.clerkId,
-          userId: user._id.toString(),
-        },
-      });
-
-      // add the stripe customer ID to the  user object in the DB
-      await User.findByIdAndUpdate(user._id, { stripeCustomerId: customer.id });
-    }
-
-    // create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100), // convert to cents
-      currency: "usd",
-      customer: customer.id,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      metadata: {
-        clerkId: user.clerkId,
-        userId: user._id.toString(),
-        orderItems: JSON.stringify(validatedItems),
-        shippingAddress: JSON.stringify(shippingAddress),
-        totalPrice: total.toFixed(2),
-      },
-      // in the webhooks section we will use this metadata
+    // 2. CREATE PENDING ORDER IN DATABASE
+    // This stores all the heavy data (images, names) so Stripe metadata doesn't have to.
+    const order = await Order.create({
+      user: user._id,
+      clerkId: user.clerkId,
+      orderItems: validatedItems,
+      shippingAddress,
+      totalPrice: total,
+      status: "pending", // Mark as pending until webhook confirms payment
+      isPaid: false,
     });
 
-    res.status(200).json({ clientSecret: paymentIntent.client_secret });
+    // 3. Find or create Stripe customer
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        metadata: { userId: user._id.toString() },
+      });
+      customerId = customer.id;
+      await User.findByIdAndUpdate(user._id, { stripeCustomerId: customerId });
+    }
+
+    // 4. Create Payment Intent with MINIMAL metadata
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(total * 100),
+      currency: "usd",
+      customer: customerId,
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        orderId: order._id.toString(), // 🚀 Only 24 characters!
+        userId: user._id.toString(),
+      },
+    });
+
+    res.status(200).json({ 
+      clientSecret: paymentIntent.client_secret,
+      orderId: order._id // Send back to client in case they need it
+    });
   } catch (error) {
     console.error("Error creating payment intent:", error);
     res.status(500).json({ error: "Failed to create payment intent" });
