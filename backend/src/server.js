@@ -39,7 +39,7 @@ app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/order",orderRoutes);
+app.use("/api/orders",orderRoutes);
 app.use("/api/reviews",reviewRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/cart",cartRoutes);
