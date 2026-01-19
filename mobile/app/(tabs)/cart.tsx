@@ -1,5 +1,5 @@
 import SafeScreen from "@/components/SafeScreen";
-import { useAddresses } from "@/hooks/useAdressess"; // Fixed typo in import
+import { useAddresses } from "@/hooks/useAdressess";
 import useCart from "@/hooks/useCart";
 import { useApi } from "@/lib/api";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -10,12 +10,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import OrderSummary from "@/components/OrderSummary";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
-import { useRouter } from "expo-router";
+
 import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
-  const router = useRouter();
   const {
     cart,
     cartItemCount,
@@ -28,8 +27,8 @@ const CartScreen = () => {
     removeFromCart,
     updateQuantity,
   } = useCart();
+  const { addresses } = useAddresses();
 
-  const { addresses, isLoading: addressesLoading } = useAddresses();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -37,70 +36,9 @@ const CartScreen = () => {
 
   const cartItems = cart?.items || [];
   const subtotal = cartTotal;
-  const shipping = 10.0; 
-  const tax = subtotal * 0.08; 
+  const shipping = 10.0; // $10 shipping fee
+  const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax;
-
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  /**
-   * Enhanced Stripe Initialization with Exponential Backoff
-   */
-  const initPaymentSheetWithRetry = async (
-    clientSecret: string,
-    maxRetries = 3
-  ): Promise<{ error?: any }> => {
-    let lastError: any = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        if (attempt > 1) {
-          const backoffDelay = Math.min(1000 * Math.pow(2, attempt - 2), 4000);
-          
-          Sentry.addBreadcrumb({
-            category: "payment",
-            message: `Retrying Stripe init: attempt ${attempt}`,
-            level: "info",
-            data: { attempt, backoffDelay },
-          });
-
-          await wait(backoffDelay);
-        } else {
-          await wait(500); 
-        }
-
-        const result = await initPaymentSheet({
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: "Sokoni Store",
-          appearance: {
-            colors: { primary: "#1DB954" }, 
-          },
-        });
-
-        if (!result.error) {
-          Sentry.addBreadcrumb({
-            category: "payment",
-            message: `Stripe initialized successfully on attempt ${attempt}`,
-            level: "info",
-          });
-          return result;
-        }
-
-        lastError = result.error;
-
-        const isConfigError =
-          result.error?.message?.includes("PaymentConfiguration") ||
-          result.error?.message?.includes("not initialized");
-
-        if (!isConfigError) return result;
-
-        Sentry.logger.warn(`Stripe config error on attempt ${attempt}: ${result.error.message}`);
-      } catch (err) {
-        lastError = err;
-      }
-    }
-    return { error: lastError };
-  };
 
   const handleQuantityChange = (productId: string, currentQuantity: number, change: number) => {
     const newQuantity = currentQuantity + change;
@@ -121,11 +59,8 @@ const CartScreen = () => {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
-    if (addressesLoading) {
-      Alert.alert("Loading addresses", "Please wait while we load your saved addresses.");
-      return;
-    }
 
+    // check if user has addresses
     if (!addresses || addresses.length === 0) {
       Alert.alert(
         "No Address",
@@ -135,26 +70,24 @@ const CartScreen = () => {
       return;
     }
 
+    // show address selection modal
     setAddressModalVisible(true);
   };
 
   const handleProceedWithPayment = async (selectedAddress: Address) => {
     setAddressModalVisible(false);
 
-    Sentry.addBreadcrumb({
-      category: "checkout",
-      message: "Address selected, initiating payment flow",
-      data: { city: selectedAddress.city, total: total.toFixed(2) }
+    // log chechkout initiated
+    Sentry.logger.info("Checkout initiated", {
+      itemCount: cartItemCount,
+      total: total.toFixed(2),
+      city: selectedAddress.city,
     });
 
     try {
       setPaymentLoading(true);
 
-      if (!initPaymentSheet || !presentPaymentSheet) {
-        throw new Error("Stripe is not properly initialized. Please restart the app.");
-      }
-
-      // 1. Create intent (Backend creates "Pending" order first)
+      // create payment intent with cart items and shipping address
       const { data } = await api.post("/payment/create-intent", {
         cartItems,
         shippingAddress: {
@@ -167,65 +100,55 @@ const CartScreen = () => {
         },
       });
 
-      // 2. Initialize with Retry Logic
-      const { error: initError } = await initPaymentSheetWithRetry(data.clientSecret);
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: data.clientSecret,
+        merchantDisplayName: "Your Store Name",
+      });
 
       if (initError) {
-        throw initError;
+        Sentry.logger.error("Payment sheet init failed", {
+          errorCode: initError.code,
+          errorMessage: initError.message,
+          cartTotal: total,
+          itemCount: cartItems.length,
+        });
+
+        Alert.alert("Error", initError.message);
+        setPaymentLoading(false);
+        return;
       }
 
-      // Native UI Buffer
-      await wait(300);
-
-      // 3. Present the Sheet
+      // present payment sheet
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        if (presentError.code !== 'Canceled') {
-          Sentry.captureMessage("Payment Sheet Presentation Error", {
-            level: "error",
-            extra: {
-              code: presentError.code,
-              message: presentError.message,
-            },
-          });
-          Alert.alert("Error", presentError.message);
-        } else {
-          Sentry.logger.info("User cancelled payment sheet");
-        }
-      } else {
-        Sentry.addBreadcrumb({
-          category: "payment",
-          message: "Payment successful, finishing order",
-          level: "info",
+        Sentry.logger.error("Payment cancelled", {
+          errorCode: presentError.code,
+          errorMessage: presentError.message,
+          cartTotal: total,
+          itemCount: cartItems.length,
         });
 
-        Alert.alert("Success 🎉", "Your order has been placed successfully!", [
-          { 
-            text: "View Orders", 
-            onPress: () => {
-              clearCart();
-              router.replace("/(tabs)"); 
-            } 
-          },
+        Alert.alert("Payment cancelled", presentError.message);
+      } else {
+        Sentry.logger.info("Payment successful", {
+          total: total.toFixed(2),
+          itemCount: cartItems.length,
+        });
+
+        Alert.alert("Success", "Your payment was successful! Your order is being processed.", [
+          { text: "OK", onPress: () => {} },
         ]);
+        clearCart();
       }
-    } catch (error: any) {
-      Sentry.captureException(error, {
-        tags: { flow: "checkout_failure" },
-        extra: { itemCount: cartItems.length, total }
+    } catch (error) {
+      Sentry.logger.error("Payment failed", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        cartTotal: total,
+        itemCount: cartItems.length,
       });
 
-      const errorMessage = error?.message || "";
-      const isConfigError = errorMessage.includes("PaymentConfiguration") || 
-                           errorMessage.includes("not initialized");
-
-      Alert.alert(
-        "Checkout Error",
-        isConfigError 
-          ? "The payment system is still loading. Please try again in a few seconds." 
-          : "Something went wrong during checkout. Please try again."
-      );
+      Alert.alert("Error", "Failed to process payment");
     } finally {
       setPaymentLoading(false);
     }
@@ -245,9 +168,10 @@ const CartScreen = () => {
         contentContainerStyle={{ paddingBottom: 240 }}
       >
         <View className="px-6 gap-2">
-          {cartItems.map((item) => (
+          {cartItems.map((item, index) => (
             <View key={item._id} className="bg-surface rounded-3xl overflow-hidden ">
               <View className="p-4 flex-row">
+                {/* product image */}
                 <View className="relative">
                   <Image
                     source={item.product.images[0]}
@@ -281,10 +205,15 @@ const CartScreen = () => {
                   <View className="flex-row items-center mt-3">
                     <TouchableOpacity
                       className="bg-background-lighter rounded-full w-9 h-9 items-center justify-center"
+                      activeOpacity={0.7}
                       onPress={() => handleQuantityChange(item.product._id, item.quantity, -1)}
                       disabled={isUpdating}
                     >
-                      {isUpdating ? <ActivityIndicator size="small" color="#FFF" /> : <Ionicons name="remove" size={18} color="#FFF" />}
+                      {isUpdating ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Ionicons name="remove" size={18} color="#FFFFFF" />
+                      )}
                     </TouchableOpacity>
 
                     <View className="mx-4 min-w-[32px] items-center">
@@ -293,14 +222,20 @@ const CartScreen = () => {
 
                     <TouchableOpacity
                       className="bg-primary rounded-full w-9 h-9 items-center justify-center"
+                      activeOpacity={0.7}
                       onPress={() => handleQuantityChange(item.product._id, item.quantity, 1)}
                       disabled={isUpdating}
                     >
-                      {isUpdating ? <ActivityIndicator size="small" color="#121212" /> : <Ionicons name="add" size={18} color="#121212" />}
+                      {isUpdating ? (
+                        <ActivityIndicator size="small" color="#121212" />
+                      ) : (
+                        <Ionicons name="add" size={18} color="#121212" />
+                      )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
+                      activeOpacity={0.7}
                       onPress={() => handleRemoveItem(item.product._id, item.product.name)}
                       disabled={isRemoving}
                     >
@@ -316,7 +251,11 @@ const CartScreen = () => {
         <OrderSummary subtotal={subtotal} shipping={shipping} tax={tax} total={total} />
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-surface pt-4 pb-32 px-6">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t
+       border-surface pt-4 pb-32 px-6"
+      >
+        {/* Quick Stats */}
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <Ionicons name="cart" size={20} color="#1DB954" />
@@ -324,11 +263,15 @@ const CartScreen = () => {
               {cartItemCount} {cartItemCount === 1 ? "item" : "items"}
             </Text>
           </View>
-          <Text className="text-text-primary font-bold text-xl">${total.toFixed(2)}</Text>
+          <View className="flex-row items-center">
+            <Text className="text-text-primary font-bold text-xl">${total.toFixed(2)}</Text>
+          </View>
         </View>
 
+        {/* Checkout Button */}
         <TouchableOpacity
           className="bg-primary rounded-2xl overflow-hidden"
+          activeOpacity={0.9}
           onPress={handleCheckout}
           disabled={paymentLoading}
         >
@@ -357,7 +300,6 @@ const CartScreen = () => {
 
 export default CartScreen;
 
-// Supporting UI Components (Loading, Error, Empty) remain the same...
 function LoadingUI() {
   return (
     <View className="flex-1 bg-background items-center justify-center">
@@ -372,6 +314,9 @@ function ErrorUI() {
     <View className="flex-1 bg-background items-center justify-center px-6">
       <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
       <Text className="text-text-primary font-semibold text-xl mt-4">Failed to load cart</Text>
+      <Text className="text-text-secondary text-center mt-2">
+        Please check your connection and try again
+      </Text>
     </View>
   );
 }
@@ -385,6 +330,9 @@ function EmptyUI() {
       <View className="flex-1 items-center justify-center px-6">
         <Ionicons name="cart-outline" size={80} color="#666" />
         <Text className="text-text-primary font-semibold text-xl mt-4">Your cart is empty</Text>
+        <Text className="text-text-secondary text-center mt-2">
+          Add some products to get started
+        </Text>
       </View>
     </View>
   );

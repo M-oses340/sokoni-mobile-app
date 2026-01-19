@@ -1,7 +1,13 @@
 import * as Sentry from '@sentry/react-native';
-import * as TaskManager from 'expo-task-manager'; // 1. Import TaskManager
+import * as TaskManager from 'expo-task-manager';
+import { LogBox } from 'react-native'; // 1. Import LogBox
 
-// 2. Register Stripe background task to silence warnings
+// Silence the false-positive Stripe warning and the deprecation notice
+LogBox.ignoreLogs([
+  'No task registered for key StripeKeepJsAwakeTask',
+  'SafeAreaView has been deprecated',
+]);
+
 const STRIPE_TASK_NAME = 'StripeKeepJsAwakeTask';
 if (!TaskManager.isTaskDefined(STRIPE_TASK_NAME)) {
   TaskManager.defineTask(STRIPE_TASK_NAME, async () => {
@@ -9,7 +15,6 @@ if (!TaskManager.isTaskDefined(STRIPE_TASK_NAME)) {
   });
 }
 
-// 3. Initialize Sentry
 Sentry.init({
   dsn: 'https://057a27e20892031141e3c87b854943ee@o4510658712764416.ingest.us.sentry.io/4510674852642816',
   sendDefaultPii: true,
@@ -22,13 +27,12 @@ Sentry.init({
 import { Stack, useRouter, useSegments } from "expo-router";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
-import { StripeProvider } from '@stripe/stripe-react-native'; // 4. Import Stripe
+import { StripeProvider } from '@stripe/stripe-react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect } from "react";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import "../global.css";
 
-// Global Query Client with Sentry Reporting
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error: any, query) => {
@@ -71,7 +75,7 @@ const tokenCache = {
 };
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
-const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!; // Ensure this is in your .env
+const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
 
 function AuthProtectedStack() {
   const { isSignedIn, isLoaded, userId } = useAuth();
@@ -103,7 +107,7 @@ export default Sentry.wrap(function RootLayout() {
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <StripeProvider 
         publishableKey={stripeKey}
-        merchantIdentifier="merchant.com.sokoni" // Match your app.json
+        merchantIdentifier="merchant.com.sokoni" 
       >
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
