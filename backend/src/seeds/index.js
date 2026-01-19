@@ -143,6 +143,82 @@ const products = [
     averageRating: 4.6,
     totalReviews: 134,
   },
+  
+  // ELECTRONICS
+  {
+    name: "Sony WH-1000XM5",
+    description: "Industry-leading noise canceling with two processors controlling 8 microphones. Magnificent Sound, engineered to perfection with the new Integrated Processor V1.",
+    price: 348.00,
+    stock: 25,
+    category: "Electronics",
+    images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"],
+    averageRating: 4.9,
+    totalReviews: 850,
+  },
+  {
+    name: "MacBook Pro 14 M3",
+    description: "The most advanced chips ever built for a personal computer. Up to 18 hours of battery life and the best laptop display in the world.",
+    price: 1599.00,
+    stock: 15,
+    category: "Electronics",
+    images: ["https://images.unsplash.com/photo-1517336714460-45b25959c94b?w=800"],
+    averageRating: 4.8,
+    totalReviews: 120,
+  },
+  // FASHION
+  {
+    name: "Urban Explorer Backpack",
+    description: "Water-resistant, recycled polyester fabric. Includes a padded 15-inch laptop sleeve and hidden security pockets for travel.",
+    price: 85.00,
+    stock: 40,
+    category: "Fashion",
+    images: ["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800"],
+    averageRating: 4.4,
+    totalReviews: 210,
+  },
+  {
+    name: "Minimalist Leather Sneakers",
+    description: "Hand-stitched Italian leather. Versatile design that transitions perfectly from office wear to weekend outings.",
+    price: 120.00,
+    stock: 30,
+    category: "Fashion",
+    images: ["https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800"],
+    averageRating: 4.6,
+    totalReviews: 95,
+  },
+  // HOME & KITCHEN
+  {
+    name: "Barista Express Espresso Machine",
+    description: "Create third wave specialty coffee at home. Integrated grinder goes from beans to espresso in under a minute.",
+    price: 699.95,
+    stock: 10,
+    category: "Home & Garden",
+    images: ["https://images.unsplash.com/photo-1510972527921-ce03766a1cf1?w=800"],
+    averageRating: 4.7,
+    totalReviews: 340,
+  },
+  {
+    name: "Smart Ceramic Table Lamp",
+    description: "Adjustable color temperature and brightness via app. Minimalist ceramic base with a linen shade.",
+    price: 45.00,
+    stock: 100,
+    category: "Home & Garden",
+    images: ["https://images.unsplash.com/photo-1507473884658-c70b65593538?w=800"],
+    averageRating: 4.2,
+    totalReviews: 55,
+  },
+  // SPORTS
+  {
+    name: "Durable Mountain Bike",
+    description: "Aluminum frame with 21-speed drivetrain and mechanical disc brakes for all-terrain performance.",
+    price: 450.00,
+    stock: 8,
+    category: "Sports",
+    images: ["https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800"],
+    averageRating: 4.5,
+    totalReviews: 88,
+  }
+
 ];
 
 const seedDatabase = async () => {
