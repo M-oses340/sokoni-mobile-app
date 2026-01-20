@@ -9,31 +9,27 @@ export const protectRoute = [
     try {
       await connectDB(); 
 
-      // 1. Get the Clerk ID
-      const { userId: clerkId } = req.auth(); 
-      console.log("Checking MongoDB for ClerkID:", clerkId);
+      const auth = req.auth();
+      const clerkId = auth.userId;
+      
+      if (!clerkId) return res.status(401).json({ message: "No Clerk ID found" });
 
-      if (!clerkId) {
-        return res.status(401).json({ message: "Unauthorized - No Clerk ID found" });
-      }
-
-      // 2. Look for the user
       let user = await User.findOne({ clerkId });
 
-      // 3. If not found, create them using Clerk's Request data
       if (!user) {
-        console.log("User NOT in Mongo. Attempting to create...");
+        console.log("User NOT in Mongo. Initializing user and services...");
 
-        // Note: You may need to install @clerk/clerk-sdk-node 
-        // or ensure your Clerk settings pass email in 'sessionClaims'
-        const session = req.auth().sessionClaims;
+        // Fix: Use 'claims' consistently
+        const claims = auth.sessionClaims; 
         
         user = await User.create({
-          clerkId: clerkId,
-          // Fallback values if Clerk doesn't provide them in the header
-          email: claims?.email,
+          clerkId,
+          email: claims?.email || `user_${clerkId}@temporary.com`,
           name: claims?.name || "Sokoni User",
           imageUrl: claims?.image || "",
+          addresses: [], // Prevents map() crashes
+          wishlist: [],
+          stripeCustomerId: "" // We will update this when they first visit checkout
         });
         
         console.log("Successfully created user in Mongo:", user._id);
@@ -43,7 +39,7 @@ export const protectRoute = [
       next();
     } catch (error) {
       console.error("CRITICAL ERROR in protectRoute:", error.message);
-      res.status(500).json({ message: "Internal server error during user sync" });
+      res.status(500).json({ message: "Internal server error" });
     }
   },
 ];
