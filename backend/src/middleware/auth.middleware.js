@@ -9,39 +9,40 @@ export const protectRoute = [
     try {
       await connectDB(); 
 
-      // 1. Get auth data from Clerk
-      const auth = req.auth(); 
-      const clerkId = auth.userId;
-      
+      // 1. Get the Clerk ID
+      const { userId: clerkId } = req.auth(); 
+      console.log("Checking MongoDB for ClerkID:", clerkId);
+
       if (!clerkId) {
-        return res.status(401).json({ message: "Unauthorized - no session found" });
+        return res.status(401).json({ message: "Unauthorized - No Clerk ID found" });
       }
 
-      // 2. Try to find the user in Mongo
+      // 2. Look for the user
       let user = await User.findOne({ clerkId });
 
-      // 3. 🚀 AUTO-SYNC: If user is in Clerk but NOT in Mongo, create them!
+      // 3. If not found, create them using Clerk's Request data
       if (!user) {
-        console.log("User found in Clerk but missing in Mongo. Creating user record...");
-        
-        // Fetch full user details from Clerk if not in session claims
-        // Or use sessionClaims if you have configured them in the Clerk Dashboard
-        const clerkUser = await auth.getUser(); 
+        console.log("User NOT in Mongo. Attempting to create...");
 
+        // Note: You may need to install @clerk/clerk-sdk-node 
+        // or ensure your Clerk settings pass email in 'sessionClaims'
+        const session = req.auth();
+        
         user = await User.create({
           clerkId: clerkId,
-          email: clerkUser.emailAddresses[0].emailAddress,
-          name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Sokoni User",
-          imageUrl: clerkUser.imageUrl,
+          // Fallback values if Clerk doesn't provide them in the header
+          email: session.sessionClaims?.email || `user_${clerkId}@temporary.com`,
+          name: session.sessionClaims?.name || "Sokoni User",
         });
+        
+        console.log("Successfully created user in Mongo:", user._id);
       }
 
-      // 4. Attach the Mongo user object to the request
       req.user = user;
       next();
     } catch (error) {
-      console.error("Error in protectRoute middleware:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error("CRITICAL ERROR in protectRoute:", error.message);
+      res.status(500).json({ message: "Internal server error during user sync" });
     }
   },
 ];
