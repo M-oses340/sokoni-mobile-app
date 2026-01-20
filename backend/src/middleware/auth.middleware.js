@@ -26,13 +26,14 @@ export const protectRoute = [
 
         // Note: You may need to install @clerk/clerk-sdk-node 
         // or ensure your Clerk settings pass email in 'sessionClaims'
-        const session = req.auth();
+        const session = req.auth().sessionClaims;
         
         user = await User.create({
           clerkId: clerkId,
           // Fallback values if Clerk doesn't provide them in the header
-          email: session.sessionClaims?.email || `user_${clerkId}@temporary.com`,
-          name: session.sessionClaims?.name || "Sokoni User",
+          email: claims?.email,
+          name: claims?.name || "Sokoni User",
+          imageUrl: claims?.image || "",
         });
         
         console.log("Successfully created user in Mongo:", user._id);
