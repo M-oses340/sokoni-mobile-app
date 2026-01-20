@@ -13,9 +13,17 @@ const useCart = () => {
   } = useQuery({
     queryKey: ["cart"],
     queryFn: async () => {
-      const { data } = await api.get<{ cart: Cart }>("/cart");
-      return data.cart;
+      // Note: adjust the type here to match your backend (with or without the {cart:} wrapper)
+      const { data } = await api.get<any>("/cart");
+      
+      // Handle the case where backend returns { cart: {...} } or just {...}
+      const cartData = data.cart || data;
+
+      // ✅ The "Double Cast" fix for the TypeScript error
+      return (cartData || { items: [] }) as unknown as Cart;
     },
+    // ✅ Fix the placeholder as well
+    placeholderData: { items: [] } as unknown as Cart,
   });
 
   const addToCartMutation = useMutation({

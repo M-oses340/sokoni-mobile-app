@@ -6,16 +6,16 @@ export async function getCart(req, res) {
     let cart = await Cart.findOne({ clerkId: req.user.clerkId }).populate("items.product");
 
     if (!cart) {
-      const user = req.user;
-
       cart = await Cart.create({
-        user: user._id,
-        clerkId: user.clerkId,
+        user: req.user._id,
+        clerkId: req.user.clerkId,
         items: [],
       });
     }
 
-    res.status(200).json({ cart });
+    // REMOVE the curly braces around cart
+    // This sends the cart object directly, not wrapped in another object
+    res.status(200).json(cart); 
   } catch (error) {
     console.error("Error in getCart controller:", error);
     res.status(500).json({ error: "Internal server error" });
