@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 import { Product } from "@/types";
 
-const useWishlist = () => {
+export const useWishlist = () => {
   const api = useApi();
   const queryClient = useQueryClient();
 
@@ -13,23 +13,37 @@ const useWishlist = () => {
   } = useQuery({
     queryKey: ["wishlist"],
     queryFn: async () => {
-      const { data } = await api.get<{ wishlist: Product[] }>("/users/wishlist");
-      return data.wishlist;
+      try {
+        const { data } = await api.get<any>("/users/wishlist");
+        
+        // This line handles BOTH cases:
+        // 1. If backend sends { wishlist: [...] }
+        // 2. If backend sends [...] directly
+        const result = data?.wishlist || data;
+
+        // Never return undefined; fallback to empty array
+        return (result || []) as Product[];
+      } catch (err) {
+        return [] as Product[]; // Return empty array on error to prevent crash
+      }
     },
+    placeholderData: [] as Product[], // Immediate data so 'reduce' doesn't fail
   });
 
   const addToWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const { data } = await api.post<{ wishlist: string[] }>("/users/wishlist", { productId });
-      return data.wishlist;
+      const { data } = await api.post<any>("/users/wishlist", { productId });
+      // FIX: Handle both { wishlist: [] } and raw []
+      return data?.wishlist || data || [];
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
   });
 
   const removeFromWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const { data } = await api.delete<{ wishlist: string[] }>(`/users/wishlist/${productId}`);
-      return data.wishlist;
+      const { data } = await api.delete<any>(`/users/wishlist/${productId}`);
+      // FIX: Handle both { wishlist: [] } and raw []
+      return data?.wishlist || data || [];
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
   });

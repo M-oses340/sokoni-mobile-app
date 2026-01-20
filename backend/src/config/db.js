@@ -1,20 +1,31 @@
 import mongoose from "mongoose";
 import { ENV } from "./env.js";
 
-let isConnected = false;
+// Global cache to prevent multiple connections in Vercel
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 export const connectDB = async () => {
-  if (isConnected) return; // Reuse existing connection
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false, // 👈 CRITICAL: Stops the 10s "Buffering" hang
+      serverSelectionTimeoutMS: 5000, 
+    };
+
+    cached.promise = mongoose.connect(ENV.DB_URL, opts).then((m) => m);
+  }
 
   try {
-    const db = await mongoose.connect(ENV.DB_URL, {
-      serverSelectionTimeoutMS: 5000, // Fail fast if DB is down
-    });
-    isConnected = db.connections[0].readyState;
+    cached.conn = await cached.promise;
     console.log("✅ MongoDB Connected");
-  } catch (error) {
-    console.error("💥 MongoDB connection error:", error.message);
-    // Throw error so the middleware can catch it and return a 500
-    throw error; 
+  } catch (e) {
+    cached.promise = null;
+    throw e;
   }
+
+  return cached.conn;
 };

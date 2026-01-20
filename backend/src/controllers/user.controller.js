@@ -144,12 +144,10 @@ export async function removeFromWishlist(req, res) {
 
 export async function getWishlist(req, res) {
   try {
-    // we're using populate, bc wishlist is just an array of product ids
     const user = await User.findById(req.user._id).populate("wishlist");
-
-    res.status(200).json({ wishlist: user.wishlist });
+    // Return the array directly, fallback to empty array if null
+    res.status(200).json(user?.wishlist || []); 
   } catch (error) {
-    console.error("Error in getWishlist controller:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Database error" });
   }
 }

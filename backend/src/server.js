@@ -33,6 +33,15 @@ app.use(express.json());
 // Clerk auth middleware
 app.use(clerkMiddleware()); // adds auth object under req.auth
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection error:", error);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
 
 // Inngest serverless endpoint
 
