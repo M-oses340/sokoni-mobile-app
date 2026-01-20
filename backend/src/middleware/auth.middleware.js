@@ -9,20 +9,38 @@ export const protectRoute = [
     try {
       await connectDB(); 
 
-      // ✅ FIX: Call req.auth() as a function
-      const { userId: clerkId } = req.auth(); 
+      // 1. Get auth data from Clerk
+      const auth = req.auth(); 
+      const clerkId = auth.userId;
       
       if (!clerkId) {
         return res.status(401).json({ message: "Unauthorized - no session found" });
       }
 
-      const user = await User.findOne({ clerkId });
-      if (!user) return res.status(404).json({ message: "User not found" });
+      // 2. Try to find the user in Mongo
+      let user = await User.findOne({ clerkId });
 
+      // 3. 🚀 AUTO-SYNC: If user is in Clerk but NOT in Mongo, create them!
+      if (!user) {
+        console.log("User found in Clerk but missing in Mongo. Creating user record...");
+        
+        // Fetch full user details from Clerk if not in session claims
+        // Or use sessionClaims if you have configured them in the Clerk Dashboard
+        const clerkUser = await auth.getUser(); 
+
+        user = await User.create({
+          clerkId: clerkId,
+          email: clerkUser.emailAddresses[0].emailAddress,
+          name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Sokoni User",
+          imageUrl: clerkUser.imageUrl,
+        });
+      }
+
+      // 4. Attach the Mongo user object to the request
       req.user = user;
       next();
     } catch (error) {
-      console.error("Error in protectRoute middleware", error);
+      console.error("Error in protectRoute middleware:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   },
